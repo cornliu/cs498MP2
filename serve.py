@@ -1,20 +1,21 @@
-from flask import Flask, request, jsonify
+import subprocess
+from flask import Flask, request
+import socket
 
 app = Flask(__name__)
 
-# Initialize the seed value
-seed_value = 0
+@app.route('/', methods=['POST'])
+def stress_cpu():
+    # Start the stress_cpu.py script as a separate process
+    subprocess.Popen(["python3", "stress_cpu.py"])
+    return "CPU stress test initiated.", 202
 
 @app.route('/', methods=['GET'])
-def get_seed():
-    return str(seed_value)
-
-@app.route('/', methods=['POST'])
-def update_seed():
-    global seed_value
-    data = request.get_json()
-    seed_value = data.get('num', seed_value)  # Update if 'num' is in the JSON body, else keep existing
-    return jsonify(success=True), 200
+def get_private_ip():
+    # Get the private IP address of the EC2 instance
+    hostname = socket.gethostname()
+    private_ip = socket.gethostbyname(hostname)
+    return private_ip
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)  # Run on all interfaces on port 8080
+    app.run(host='0.0.0.0', port=5000)  # Run the server on port 5000
